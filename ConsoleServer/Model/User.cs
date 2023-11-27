@@ -5,11 +5,12 @@ using ConsoleServer.Repository;
 
 namespace ConsoleServer.Model {
     public class User : IDisposable {
-        public TcpClient Socket { get; } = null;
+        public TcpClient Socket { get; }
         public NetworkStream Stream { get; private set; }
         public bool IsRunning { get; private set; } = false;
 
         public bool IsInRoom { get; private set; } = false;
+        public ChatRoom CurrentRoom { get; set; }
 
         public string UserName { get; private set; }
         public string Host { get; }
@@ -50,18 +51,25 @@ namespace ConsoleServer.Model {
             } while(isInvalidName);
 
             await SendMessageAsync($"Good to see you, {UserName}!");
+            await SendMessageAsync($"Your IP: {Host}");
 
             // common loop
             while(IsRunning) {
                 message = await GetMessageAsync();
 
                 // todo. handle message
-                if(!IsInRoom) {
-                    // todo. command handling
+                if(IsInRoom) {
+                    if(message.StartsWith('#')) {
+                        // todo. validation command
+
+                        // todo. handle command
+                    }
+                    // todo. broadcast
+                    await CurrentRoom.BroadCast(message);
                 }
 
                 // if else then
-                // todo. handle message || command handling
+                // todo. handle command(validation => handle)
             }
         }
 
