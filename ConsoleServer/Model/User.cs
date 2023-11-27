@@ -1,4 +1,5 @@
-﻿using System.Net.Sockets;
+﻿using System.Net;
+using System.Net.Sockets;
 using System.Text;
 using ConsoleServer.Repository;
 
@@ -8,7 +9,12 @@ namespace ConsoleServer.Model {
         public NetworkStream Stream { get; private set; }
         public bool IsRunning { get; private set; } = false;
 
+        public bool IsInRoom { get; private set; } = false;
+
         public string UserName { get; private set; }
+        public string Host { get; }
+
+        private string message = String.Empty;
 
         /// <summary>
         /// CONSTRUCTOR
@@ -20,6 +26,7 @@ namespace ConsoleServer.Model {
                 return;
             IsRunning = true;
 
+            Host = ((IPEndPoint)Socket.Client.RemoteEndPoint).Address.ToString();
             Stream = Socket.GetStream();
 
             Task.Run(RunAsync);
@@ -46,7 +53,15 @@ namespace ConsoleServer.Model {
 
             // common loop
             while(IsRunning) {
+                message = await GetMessageAsync();
 
+                // todo. handle message
+                if(!IsInRoom) {
+                    // todo. command handling
+                }
+
+                // if else then
+                // todo. handle message || command handling
             }
         }
 
