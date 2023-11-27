@@ -59,18 +59,30 @@ namespace ConsoleServer.Model {
 
                 // todo. handle message _ ClientCommand(in room)
                 if(IsInRoom) {
-                    if(message.StartsWith('#')) {
-                        // todo. validation command
+                    if(message.ToLower() == "q") {  // handle 'Quit' pf.
+                        LeaveRoom();
+                    } else {
+                        if(message.StartsWith('#')) {   // handle Command
+                            // todo. validation command
 
-                        // todo. handle command
+                            // todo. handle command
+                        } else {    // broadcast
+                            await CurrentRoom.BroadCast($"{UserName} : {message}");
+                        }
                     }
-                    // todo. broadcast
-                    await CurrentRoom.BroadCast($"{UserName} : {message}");
                 }
 
                 // if else then
                 // todo. handle command(validation => handle) _ ClientCommand(not in room)
             }
+        }
+
+        public async Task FindRoom(string roomName) {
+            ChatRoom? room = Repos.RoomList.FirstOrDefault(r => r.RoomName == roomName);
+            if(room != null)
+                await JoinRoom(room);
+            else
+                await SendMessageAsync($"A chat room named '{roomName} does not exist!'");
         }
 
         public async Task JoinRoom(ChatRoom room) {
@@ -131,7 +143,7 @@ namespace ConsoleServer.Model {
         }
 
         public async Task SendMessageAsync(string msg) {
-            byte[] sndBuf = Encoding.Default.GetBytes($"SERVER :: {msg}");
+            byte[] sndBuf = Encoding.Default.GetBytes($"{msg}");
             byte[] sizeOfBuf = Encoding.Default.GetBytes(sndBuf.Length.ToString());
 
             // step1. send buffer size
