@@ -78,7 +78,7 @@ namespace ConsoleServer.Model {
         }
 
         public async Task FindRoom(string roomName) {
-            ChatRoom? room = Repos.RoomList.FirstOrDefault(r => r.RoomName == roomName);
+            ChatRoom? room = Repos.RoomList.FirstOrDefault((r) => r.RoomName == roomName);
             if(room != null)
                 await JoinRoom(room);
             else

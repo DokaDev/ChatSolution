@@ -21,6 +21,15 @@ namespace ConsoleClient {
                 Stream = Socket.GetStream();
 
                 Task.Run(GetMessageAsync);
+
+                while(IsRunning) {
+                    string msg = Console.ReadLine();
+                    byte[] sndBuf = Encoding.Default.GetBytes(msg);
+                    byte[] sizeOfBuf = Encoding.Default.GetBytes(sndBuf.Length.ToString());
+
+                    Stream.Write(sizeOfBuf, 0, sizeOfBuf.Length);
+                    Stream.Write(sndBuf, 0, sndBuf.Length);
+                }
             } catch(Exception) {
                 Dispose();
             }

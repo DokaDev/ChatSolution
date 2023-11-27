@@ -1,10 +1,8 @@
-﻿using System.Net.Sockets;
-using System.Text;
-
-namespace ConsoleServer.Model {
+﻿namespace ConsoleServer.Model {
     public class ChatRoom : IDisposable {
         public string RoomName { get; set; }
         public string Password { get; private set; }
+
         public User Admin { get; set; }
 
         public List<User> UserList { get; set; } = new();
@@ -21,10 +19,14 @@ namespace ConsoleServer.Model {
             Password = pw;
         }
 
-        public async Task Whisper(string username, string msg) {
+        public async Task Whisper(User sender, string username, string msg) {
             // todo. find user
+            User? user = UserList.FirstOrDefault((r) => r.UserName == username);
 
-            // todo. send message to usr
+            if (user != null)
+                await user.SendMessageAsync($"[WHISPER] {sender.UserName} : {msg}");
+            else
+                await sender.SendMessageAsync($"A user named '{username} does not exist!'");
         }
 
         public async Task BroadCast(string msg) {
