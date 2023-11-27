@@ -13,7 +13,7 @@ namespace ConsoleServer.Model {
         public ChatRoom CurrentRoom { get; set; }
 
         public string UserName { get; private set; }
-        public string Host { get; }
+        public string? Host { get; }
 
         private string message = String.Empty;
 
@@ -27,7 +27,7 @@ namespace ConsoleServer.Model {
                 return;
             IsRunning = true;
 
-            Host = ((IPEndPoint)Socket.Client.RemoteEndPoint).Address.ToString();
+            Host = ((IPEndPoint?)Socket.Client.RemoteEndPoint)?.Address.ToString();
             Stream = Socket.GetStream();
 
             Task.Run(RunAsync);
@@ -57,7 +57,7 @@ namespace ConsoleServer.Model {
             while(IsRunning) {
                 message = await GetMessageAsync();
 
-                // todo. handle message
+                // todo. handle message _ ClientCommand(in room)
                 if(IsInRoom) {
                     if(message.StartsWith('#')) {
                         // todo. validation command
@@ -65,11 +65,47 @@ namespace ConsoleServer.Model {
                         // todo. handle command
                     }
                     // todo. broadcast
-                    await CurrentRoom.BroadCast(message);
+                    await CurrentRoom.BroadCast($"{UserName} : {message}");
                 }
 
                 // if else then
-                // todo. handle command(validation => handle)
+                // todo. handle command(validation => handle) _ ClientCommand(not in room)
+            }
+        }
+
+        public async Task JoinRoom(ChatRoom room) {
+            if(IsInRoom)
+                return;
+
+            CurrentRoom = room;
+
+            if(!string.IsNullOrEmpty(room.Password)) {
+                await SendMessageAsync($"Room [{room.RoomName}] has a password. Plz enter the password!");
+
+                int count = 0;
+
+                while(count < 3) {
+                    string pw = await GetMessageAsync();
+
+                    if(!string.Equals(pw, room.Password)) {
+                        await SendMessageAsync($"Incorrect password! Please try again");
+                        count++;
+                    } else
+                        break;
+                }
+            }
+
+            await SendMessageAsync($"Entered room [{room.RoomName}]!");
+
+            room.UserList.Add(this);
+            IsInRoom = true;
+        }
+
+        public void LeaveRoom() {
+            if(IsInRoom) {
+                CurrentRoom.UserList.Remove(this);
+                IsInRoom = false;
+                CurrentRoom = null;
             }
         }
 

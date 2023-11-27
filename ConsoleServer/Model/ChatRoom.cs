@@ -28,25 +28,9 @@ namespace ConsoleServer.Model {
         }
 
         public async Task BroadCast(string msg) {
-            // handle null message
-
-            byte[] buffer = Encoding.UTF8.GetBytes(msg);
-
             foreach(var usr in UserList) {
-                await SendMessageToUserAsync(usr.Socket, buffer);
+                await usr.SendMessageAsync(msg);
             }
-        }
-
-        public async Task SendMessageToUserAsync(TcpClient socket, byte[] buf) {
-            NetworkStream stream = socket.GetStream();
-
-            byte[] sizeBuf = Encoding.Default.GetBytes(buf.Length.ToString());
-
-            // step1. send size-of buffer
-            await stream.WriteAsync(sizeBuf, 0, sizeBuf.Length);
-
-            // step2. send message
-            await stream.WriteAsync(buf, 0, buf.Length);
         }
 
         public void Dispose() {
