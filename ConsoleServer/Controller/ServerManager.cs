@@ -6,9 +6,9 @@ using ConsoleServer.Repository;
 namespace ConsoleServer.Controller {
     public class ServerManager : IDisposable {
         public TcpListener Listener { get; private set; }
+        public Terminal Shell { get; private set; }
         public int Port { get; }
         public bool IsRunning { get; private set; } = false;
-        public Terminal Shell { get; } = new();
 
         /// <summary>
         /// CONSTRUCTOR
@@ -22,6 +22,8 @@ namespace ConsoleServer.Controller {
         }
 
         public void Start() {
+            Shell = new(this);
+
             Task.Run(StartServerAsync);
             Shell.StartTerminal();
         }
@@ -44,14 +46,15 @@ namespace ConsoleServer.Controller {
             await AcceptClientAsync();
         }
 
+        /// <summary>
+        /// Accept Client send conn. Request as Asynchronous
+        /// </summary>
         public async Task AcceptClientAsync() {
             while(IsRunning) {
                 TcpClient socket = await Listener.AcceptTcpClientAsync();
                 Repos.UserList.Add(new User(socket));
             }
         }
-
-
 
         public void StopServer() {
             Dispose();

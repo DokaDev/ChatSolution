@@ -12,7 +12,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Commands\" />
+    <Folder Include="Commands\Client\" />
+    <Folder Include="Commands\Server\" />
   </ItemGroup>
 
 </Project>
