@@ -1,5 +1,6 @@
 ﻿using System.Net;
 using System.Net.Sockets;
+using ConsoleServer.Log;
 using ConsoleServer.Model;
 using ConsoleServer.Repository;
 
@@ -22,24 +23,31 @@ namespace ConsoleServer.Controller {
         }
 
         public void Start() {
+            Context.ServerMGR = this;
+
             Shell = new(this);
+            Logger.Log("Set server context to Terminal.");
 
             Task.Run(StartServerAsync);
+
             Shell.StartTerminal();
+            Logger.Log("Terminal Created");
+
+            Repos.RoomList.Add(new ChatRoom("Global", "abc", null));
+            Logger.Log("Global room created.");
         }
 
         /// <summary>
         /// Start Server as Asynchronous
         /// </summary>
         public async Task StartServerAsync() {
-            if(!IsRunning)
+            if(IsRunning)
                 return;
 
             Listener = new(IPAddress.Parse(Authentication.Config.Host), Port);
             Listener.Start();
 
-            if(!Listener.Pending())
-                return;
+            Logger.Log("Server started.");
 
             IsRunning = true;
 
@@ -51,6 +59,7 @@ namespace ConsoleServer.Controller {
         /// </summary>
         public async Task AcceptClientAsync() {
             while(IsRunning) {
+                Logger.Log("Listening");
                 TcpClient socket = await Listener.AcceptTcpClientAsync();
                 Repos.UserList.Add(new User(socket));
             }

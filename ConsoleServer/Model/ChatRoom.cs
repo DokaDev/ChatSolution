@@ -10,11 +10,11 @@
         /// <summary>
         /// CONSTRUCTOR
         /// </summary>
-        public ChatRoom(string roomName) {
+        public ChatRoom(string roomName, User user) {
             RoomName = roomName;
             Password = "";
         }
-        public ChatRoom(string roomName, string pw) {
+        public ChatRoom(string roomName, string pw, User user) {
             RoomName = roomName;
             Password = pw;
         }

@@ -11,46 +11,64 @@ namespace ConsoleClient {
         /// CONSTRUCTOR
         /// </summary>
         public ClientManager() {
+
+            Socket = new(Authentication.Config.Host, Authentication.Config.Port);
+            //Console.WriteLine("Connected!");
+
+            Stream = Socket.GetStream();
+
+            IsRunning = true;
+
+            Thread sender = new(Sender);
+            Thread receiver = new(Receiver);
+
+            sender.Start();
+            receiver.Start();
+        }
+
+        public void Receiver() {
             try {
-                Socket = new(Authentication.Config.Host, Authentication.Config.Port);
-                if(!Socket.Connected) {
-                    Dispose();
-                    return;
+                while(IsRunning) {
+                    byte[] rcvBuf = new byte[1024];
+                    //int nbytes = Stream.Read(rcvBuf, 0, rcvBuf.Length);
+                    //int sizeOfBuf = int.Parse(Encoding.Default.GetString(rcvBuf, 0, nbytes));
+
+                    //rcvBuf = new byte[sizeOfBuf];
+                    int nbytes = Stream.Read(rcvBuf, 0, rcvBuf.Length);
+                    string msg = Encoding.Default.GetString(rcvBuf, 0, nbytes);
+
+                    Console.WriteLine(msg);
                 }
+            } catch(Exception ex) {
 
-                Stream = Socket.GetStream();
+            } finally {
+                Dispose();
+            }
 
-                Task.Run(GetMessageAsync);
+        }
 
+        public void Sender() {
+            try {
                 while(IsRunning) {
                     string msg = Console.ReadLine();
                     byte[] sndBuf = Encoding.Default.GetBytes(msg);
-                    byte[] sizeOfBuf = Encoding.Default.GetBytes(sndBuf.Length.ToString());
+                    //byte[] sizeOfBuf = Encoding.Default.GetBytes(sndBuf.Length.ToString());
 
-                    Stream.Write(sizeOfBuf, 0, sizeOfBuf.Length);
+                    //Stream.Write(sizeOfBuf, 0, sizeOfBuf.Length);
                     Stream.Write(sndBuf, 0, sndBuf.Length);
                 }
-            } catch(Exception) {
+            } catch(Exception ex) {
+
+            } finally {
                 Dispose();
             }
+
         }
-
-        public async Task GetMessageAsync() {
-            while(IsRunning) {
-                byte[] rcvBuf = new byte[1024];
-                int nbytes = await Stream.ReadAsync(rcvBuf, 0, rcvBuf.Length);
-                int sizeOfBuf = int.Parse(Encoding.Default.GetString(rcvBuf, 0, nbytes));
-
-                rcvBuf = new byte[sizeOfBuf];
-                nbytes = await Stream.ReadAsync(rcvBuf, 0, rcvBuf.Length);
-                string msg = Encoding.Default.GetString(rcvBuf, 0, nbytes);
-
-                await Console.Out.WriteLineAsync(msg);
-            }
-        }
-
         public void Dispose() {
             Socket?.Dispose();
+            Stream?.Dispose();
+
+            Console.WriteLine("Disconnected from server.");
         }
     }
 }

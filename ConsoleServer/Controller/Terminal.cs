@@ -1,6 +1,10 @@
-﻿namespace ConsoleServer.Controller {
+﻿using ConsoleServer.Commands.Terminal;
+using System.Diagnostics;
+
+namespace ConsoleServer.Controller {
     public class Terminal : IDisposable {
         public ServerManager Context { get; }
+        public TerminalProcessor Processor { get; }
 
         /// <summary>
         /// CONSTRUCTOR
@@ -8,6 +12,7 @@
         /// <param name="context">Get Server Context</param>
         public Terminal(ServerManager context) {
             Context = context;
+            Processor = new();
         }
 
         public void StartTerminal() {
@@ -16,16 +21,18 @@
 
         public async Task GetCommandAsync() {
             while(true) {
+                Console.ForegroundColor = ConsoleColor.Red;
                 await Console.Out.WriteAsync(">> ");
                 string? input = await Console.In.ReadLineAsync();
+                Console.ForegroundColor = ConsoleColor.White;
 
-                await HandleCommand(input);
+                HandleCommand(input);
             }
         }
 
-        public async Task HandleCommand(string? input) {
+        public void HandleCommand(string? input) {
             // todo. Handle Command Logic
-            await Task.Delay(1000);
+            Processor.Process(input);
         }
 
         public void StopTerminal() {

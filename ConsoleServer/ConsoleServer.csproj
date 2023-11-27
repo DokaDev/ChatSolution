@@ -11,10 +11,4 @@
     <ProjectReference Include="..\Authentication\Authentication.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Commands\Client\" />
-    <Folder Include="Commands\Attributes\" />
-    <Folder Include="Commands\Server\" />
-  </ItemGroup>
-
 </Project>
