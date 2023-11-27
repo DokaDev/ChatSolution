@@ -28,19 +28,18 @@ namespace ConsoleServer.Controller {
             Listener = new(IPAddress.Parse(Authentication.Config.Host), Port);
             Listener.Start();
 
-            Task.Run(() => GetCommandAsync());
-            Task.Run(() => AcceptClientAsync());
-
             IsRunning = true;
+
+            await AcceptClientAsync();
         }
 
-        private async Task AcceptClientAsync() {
+        public async Task AcceptClientAsync() {
             while(IsRunning) {
                 TcpClient socket = await Listener.AcceptTcpClientAsync();
             }
         }
 
-        private async Task GetCommandAsync() {
+        public async Task GetCommandAsync() {
             while(IsRunning) {
                 string? input = await Console.In.ReadLineAsync();
                 // todo. Handle User-Command Logic
