@@ -1,5 +1,4 @@
 ﻿using ConsoleServer.Commands.Terminal;
-using System.Diagnostics;
 
 namespace ConsoleServer.Controller {
     public class Terminal : IDisposable {

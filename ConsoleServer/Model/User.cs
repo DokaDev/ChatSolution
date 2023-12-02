@@ -1,22 +1,32 @@
-﻿using System.Diagnostics;
+﻿using ConsoleServer.Log;
+using ConsoleServer.Repository;
+using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
-using ConsoleServer.Log;
-using ConsoleServer.Repository;
 
 namespace ConsoleServer.Model {
     public class User : IDisposable {
+        /// <summary>
+        /// Property related to User Context
+        /// </summary>
         public TcpClient Socket { get; }
         public NetworkStream Stream { get; private set; }
         public bool IsRunning { get; private set; } = false;
 
+        /// <summary>
+        /// Property related to Chatroom
+        /// </summary>
         public bool IsInRoom { get; private set; } = false;
-        public ChatRoom CurrentRoom { get; set; }
+        public ChatRoom? CurrentRoom { get; set; }
 
+        /// <summary>
+        /// Property related to User Service
+        /// </summary>
         public string UserName { get; private set; } = "Not Assigned";
         public string? Host { get; }
 
+        // just field..
         private string message = String.Empty;
 
         /// <summary>
@@ -93,10 +103,11 @@ namespace ConsoleServer.Model {
                             await CurrentRoom.BroadCast($"{UserName} : {message}");
                         }
                     }
-                }
+                } // join Room1
 
                 // if else then
                 // todo. handle command(validation => handle) _ ClientCommand(not in room)
+                //Logger.Log($"{usr.UserName} : {message}");
             }
         }
 
@@ -152,13 +163,7 @@ namespace ConsoleServer.Model {
             byte[] rcvBuf;
             int nBytes;
 
-            // step1. get buffer size
             rcvBuf = new byte[1024];
-            //nBytes = await Stream.ReadAsync(rcvBuf, 0, rcvBuf.Length);
-            //int sizeOfBuf = int.Parse(Encoding.Default.GetString(rcvBuf, 0, nBytes));
-
-            // step2. get message
-            //rcvBuf = new byte[sizeOfBuf];
             nBytes = await Stream.ReadAsync(rcvBuf, 0, rcvBuf.Length);
             string msg = Encoding.Default.GetString(rcvBuf, 0, nBytes);
 
@@ -167,18 +172,12 @@ namespace ConsoleServer.Model {
 
         public async Task SendMessageAsync(string msg) {
             byte[] sndBuf = Encoding.Default.GetBytes($"{msg}");
-            //byte[] sizeOfBuf = Encoding.Default.GetBytes(sndBuf.Length.ToString());
-
-            // step1. send buffer size
-            //await Stream.WriteAsync(sizeOfBuf, 0, sizeOfBuf.Length);
-
-            // step2. send message
             await Stream.WriteAsync(sndBuf, 0, sndBuf.Length);
         }
 
         public void Dispose() {
             Socket?.Dispose();
-            Socket?.Dispose();
+            Stream?.Dispose();
 
             Logger.Log($"{Host} - {UserName} Disconnected.");
 

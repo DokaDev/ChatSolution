@@ -10,10 +10,18 @@
         /// <summary>
         /// CONSTRUCTOR
         /// </summary>
+        /// <param name="roomName">ROOM NAME</param>
+        /// <param name="user">ADMIN</param>
         public ChatRoom(string roomName, User user) {
             RoomName = roomName;
             Password = "";
         }
+        /// <summary>
+        /// CONSTRUCTOR(OVERLOADED)
+        /// </summary>
+        /// <param name="roomName">ROOM NAME</param>
+        /// <param name="pw">PASSWORD</param>
+        /// <param name="user">ADMIN</param>
         public ChatRoom(string roomName, string pw, User user) {
             RoomName = roomName;
             Password = pw;
@@ -23,7 +31,7 @@
             // todo. find user
             User? user = UserList.FirstOrDefault((r) => r.UserName == username);
 
-            if (user != null)
+            if(user != null)
                 await user.SendMessageAsync($"[WHISPER] {sender.UserName} : {msg}");
             else
                 await sender.SendMessageAsync($"A user named '{username} does not exist!'");
@@ -35,7 +43,36 @@
             }
         }
 
+        /// <summary>
+        /// Only for Admin
+        /// </summary>
+        /// <param name="user">Function caller</param>
+        public async Task DeleteRoom(User user) {
+            if(Admin == user) {
+                await BroadCast($"Server :: [{RoomName}] deleted by administrator, [{Admin.UserName}]");
+                Dispose();
+            } else {
+                await user.SendMessageAsync("This function only can use administrator!");
+            }
+        }
+
+        /// <summary>
+        /// Only for Admin
+        /// </summary>
+        /// <param name="request">Function caller</param>
+        /// <param name="target"></param>
+        public async Task KickUser(User request, User target) {
+            if(Admin == request) {
+
+            } else {
+                await request.SendMessageAsync("This function only can use administrator!");
+            }
+        }
+
         public void Dispose() {
+            foreach(var user in UserList) {
+                user.CurrentRoom = null;
+            }
             UserList.Clear();
         }
     }
