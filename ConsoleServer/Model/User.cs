@@ -58,7 +58,6 @@ namespace ConsoleServer.Model {
                 }
                 await Task.Delay(1000);
             }
-
         }
 
         public async Task RunAsync() {
@@ -107,6 +106,9 @@ namespace ConsoleServer.Model {
                                 case "#leave":
                                     await LeaveRoom();
                                     break;
+                                //case "#smile":
+                                //    CurrentRoom.BroadCast("\u2551\u258c\u2502\u2588\u2551\u258c\u2502 \u2588\u2551\u258c\u2502\u2588\u2502\u2551\u258c\u2551\r\n\ud835\ude68\ud835\ude58\ud835\ude56\ud835\ude63\ud835\ude63\ud835\ude5e\ud835\ude63\ud835\ude5c \ud835\ude58\ud835\ude64\ud835\ude59\ud835\ude5a...\r\n");
+                                //    break;
                                 default:
                                     await SendMessageAsync($"[{message}] is Unknown command!");
                                     break;
@@ -115,7 +117,7 @@ namespace ConsoleServer.Model {
                             await CurrentRoom.BroadCast($"{UserName} : {message}");
                         }
                     }
-                } else {
+                } else {    // Lobby
                     switch(message.ToLower()) {
                         case "#rooms":
                             await SendMessageAsync("List Room Start!");
@@ -128,7 +130,9 @@ namespace ConsoleServer.Model {
                             //await SendMessageAsync("UserList Start!");
                             await LobbyCommand.ShowUserList(this);
                             break;
-
+                        case "#create":
+                            await CreateRoom();
+                            break;
                         default:
                             await SendMessageAsync($"Server(Whisper) :: [{message}] is Unknown Command");
                             break;
@@ -143,6 +147,54 @@ namespace ConsoleServer.Model {
                 await JoinRoom(room);
             else
                 await SendMessageAsync($"Server :: A chat room named '{roomName} does not exist!'");
+        }
+
+        public async Task CreateRoom() {
+            await SendMessageAsync("Type name of chatroom what you what!");
+
+            string tmp;
+            bool isInvalidName;
+
+            do {
+                isInvalidName = false;
+                tmp = await GetMessageAsync();
+
+                // desc. name validation
+                if(IsRoomNameTaken(tmp)) {
+                    await SendMessageAsync($"Name '{tmp}' is already exist! plz use another name.");
+                    isInvalidName = true;
+                }
+
+            } while(isInvalidName);
+
+            string RoomName = tmp;
+
+            await SendMessageAsync($"you wanna set the password to your room {RoomName}? If you want, type the password and Enter, if not type 'q'.");
+
+            tmp = await GetMessageAsync();
+
+            ChatRoom room;
+
+            if(tmp.ToLower() == "q") {
+                room = new ChatRoom(RoomName, this);
+                Repos.RoomList.Add(room);
+                Logger.Log($"User [{UserName}] created Chatroom [{room.RoomName}]");
+            } else {
+                room = new ChatRoom(RoomName, tmp, this);
+                Repos.RoomList.Add(room);
+                Logger.Log($"User [{UserName}] created Chatroom [{room.RoomName}] | PW : {room.Password}");
+            }
+
+            await SendMessageAsync("Complete. We'll enter room!");
+            // enter room
+            // no validation process
+            room.UserList.Add(this);
+            CurrentRoom = room;
+            IsInRoom = true;
+        }
+
+        private bool IsRoomNameTaken(string roomName) {
+            return Repos.RoomList.Any(room => room.RoomName == roomName);
         }
 
         public async Task JoinRoom(ChatRoom room) {
@@ -177,14 +229,17 @@ namespace ConsoleServer.Model {
 
             await SendMessageAsync($"Server :: Entered room [{room.RoomName}]!");
             await CurrentRoom.BroadCast($"Server :: User {UserName} connected..!");
+            Logger.Log($"User [{UserName}] joined to [{CurrentRoom.RoomName}]");
         }
 
         public async Task LeaveRoom() {
             if(IsInRoom) {
                 if(CurrentRoom.Admin == this) {
+                    await SendMessageAsync($"You are admin of room {CurrentRoom.RoomName}. room will be deleted too!");
                     await CurrentRoom.DeleteRoom(this);
                 } else {
                     await CurrentRoom.BroadCast($"Server :: User [{UserName}] leaved from the room [{CurrentRoom.RoomName}]");
+                    Logger.Log($"User [{UserName}] leaved from [{CurrentRoom.RoomName}]");
                     CurrentRoom.UserList.Remove(this);
                     IsInRoom = false;
                     CurrentRoom = null;

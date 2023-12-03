@@ -4,13 +4,11 @@ using ConsoleServer.Repository;
 namespace ConsoleServer.UserService {
     public static class LobbyCommand {
         public static async Task ShowUserList(User context) {
-            //Console.WriteLine($"=========== USER LIST [{Repos.UserList.Count}] ===========");
             string formattedText = $"=========== USER LIST [{Repos.UserList.Count}] ===========\n";
 
             foreach(User user in Repos.UserList) {
                 formattedText += $"{user.Host} : {user.UserName}\n";
             }
-
             await context.SendMessageAsync(formattedText);
         }
 

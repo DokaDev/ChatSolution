@@ -11,10 +11,7 @@ namespace ConsoleClient {
         /// CONSTRUCTOR
         /// </summary>
         public ClientManager() {
-
             Socket = new(Authentication.Config.Host, Authentication.Config.Port);
-            //Console.WriteLine("Connected!");
-
             Stream = Socket.GetStream();
 
             IsRunning = true;

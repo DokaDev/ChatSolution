@@ -34,8 +34,8 @@ namespace ConsoleServer.Controller {
             Logger.Log("Terminal Created");
 
             Repos.RoomList.Add(new ChatRoom("Global", null));
-            Repos.RoomList.Add(new ChatRoom("채팅방1", "abc", null));
-            Repos.RoomList.Add(new ChatRoom("no password room test",  null));
+            //Repos.RoomList.Add(new ChatRoom("채팅방1", "abc", null));
+            //Repos.RoomList.Add(new ChatRoom("no password room test",  null));
 
             Logger.Log("Global room created.");
         }
