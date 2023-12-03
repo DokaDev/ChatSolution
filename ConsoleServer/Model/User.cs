@@ -9,7 +9,7 @@ using ConsoleServer.UserService;
 namespace ConsoleServer.Model {
     public class User : IDisposable {
         /// <summary>
-        /// Property related to User Context
+        /// Property related to User Context - test
         /// </summary>
         public TcpClient Socket { get; }
         public NetworkStream Stream { get; private set; }
