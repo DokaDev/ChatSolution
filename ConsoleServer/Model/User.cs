@@ -84,7 +84,7 @@ namespace ConsoleServer.Model {
             UserName = tmp;
 
             await SendMessageAsync($"Good to see you, {UserName}!");
-            await SendMessageAsync($"Your IP: {Host}");
+            await SendMessageAsync($"Your IP: {Host}"); 
 
             // common loop
             while(IsRunning) {
