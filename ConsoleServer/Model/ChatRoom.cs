@@ -1,4 +1,7 @@
-﻿namespace ConsoleServer.Model {
+﻿using System.Diagnostics;
+using ConsoleServer.Log;
+
+namespace ConsoleServer.Model {
     public class ChatRoom : IDisposable {
         public string RoomName { get; set; }
         public string Password { get; private set; }
@@ -32,14 +35,18 @@
             User? user = UserList.FirstOrDefault((r) => r.UserName == username);
 
             if(user != null)
-                await user.SendMessageAsync($"[WHISPER] {sender.UserName} : {msg}");
+                await user.SendMessageAsync($"{sender.UserName}(Whisper) : {msg}");
             else
                 await sender.SendMessageAsync($"A user named '{username} does not exist!'");
         }
 
         public async Task BroadCast(string msg) {
-            foreach(var usr in UserList) {
-                await usr.SendMessageAsync(msg);
+            try {
+                foreach(var usr in UserList) {
+                    await usr.SendMessageAsync(msg);
+                }
+            } catch(Exception e) {
+                Logger.Log($"Exception accrued in Chatroom_BroadCast_[{RoomName}] - {e}");
             }
         }
 
@@ -50,6 +57,10 @@
         public async Task DeleteRoom(User user) {
             if(Admin == user) {
                 await BroadCast($"Server :: [{RoomName}] deleted by administrator, [{Admin.UserName}]");
+
+                foreach(var usr in UserList) {
+                    await usr.LeaveRoom();
+                }
                 Dispose();
             } else {
                 await user.SendMessageAsync("This function only can use administrator!");
@@ -63,16 +74,13 @@
         /// <param name="target"></param>
         public async Task KickUser(User request, User target) {
             if(Admin == request) {
-
+                await BroadCast($"Server :: User [{target.UserName}] kicked by administrator");
             } else {
                 await request.SendMessageAsync("This function only can use administrator!");
             }
         }
 
         public void Dispose() {
-            foreach(var user in UserList) {
-                user.CurrentRoom = null;
-            }
             UserList.Clear();
         }
     }

@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using ConsoleServer.UserService;
 
 namespace ConsoleServer.Model {
     public class User : IDisposable {
@@ -65,10 +66,10 @@ namespace ConsoleServer.Model {
             string tmp;
             bool isInvalidName;
 
+            await SendMessageAsync("Welcome! Plz type your name!");
+
             do {
                 isInvalidName = false;
-
-                await SendMessageAsync("Welcome! Plz type your name!");
                 tmp = await GetMessageAsync();
 
                 // desc. name validation
@@ -77,7 +78,7 @@ namespace ConsoleServer.Model {
                     isInvalidName = true;
                 }
 
-                await Task.Delay(100);
+                //await Task.Delay(100);
 
             } while(isInvalidName);
 
@@ -93,21 +94,46 @@ namespace ConsoleServer.Model {
                 // todo. handle message _ ClientCommand(in room)
                 if(IsInRoom) {
                     if(message.ToLower() == "q") {  // handle 'Quit' pf.
-                        LeaveRoom();
+                        await LeaveRoom();
+                        break;
                     } else {
-                        if(message.StartsWith('#')) {   // handle Command
-                            // todo. validation command
-
-                            // todo. handle command
+                        if(message.StartsWith('#')) {   // handle Command(Prefix = '#')
+                            switch(message.ToLower()) {
+                                case "#userlist":
+                                    await RoomCommand.ShowUserList(this);
+                                    break;
+                                case "#w":
+                                    break;
+                                case "#leave":
+                                    await LeaveRoom();
+                                    break;
+                                default:
+                                    await SendMessageAsync($"[{message}] is Unknown command!");
+                                    break;
+                            }
                         } else {    // broadcast
                             await CurrentRoom.BroadCast($"{UserName} : {message}");
                         }
                     }
-                } // join Room1
+                } else {
+                    switch(message.ToLower()) {
+                        case "#rooms":
+                            await SendMessageAsync("List Room Start!");
+                            break;
+                        case "#join":
+                            //await SendMessageAsync("Join Room Start!");
+                            await LobbyCommand.JoinRoom(this);
+                            break;
+                        case "#userlist":
+                            //await SendMessageAsync("UserList Start!");
+                            await LobbyCommand.ShowUserList(this);
+                            break;
 
-                // if else then
-                // todo. handle command(validation => handle) _ ClientCommand(not in room)
-                //Logger.Log($"{usr.UserName} : {message}");
+                        default:
+                            await SendMessageAsync($"Server(Whisper) :: [{message}] is Unknown Command");
+                            break;
+                    }
+                }
             }
         }
 
@@ -116,7 +142,7 @@ namespace ConsoleServer.Model {
             if(room != null)
                 await JoinRoom(room);
             else
-                await SendMessageAsync($"A chat room named '{roomName} does not exist!'");
+                await SendMessageAsync($"Server :: A chat room named '{roomName} does not exist!'");
         }
 
         public async Task JoinRoom(ChatRoom room) {
@@ -126,7 +152,7 @@ namespace ConsoleServer.Model {
             CurrentRoom = room;
 
             if(!string.IsNullOrEmpty(room.Password)) {
-                await SendMessageAsync($"Room [{room.RoomName}] has a password. Plz enter the password!");
+                await SendMessageAsync($"Server :: Room [{room.RoomName}] has a password. Plz enter the password!");
 
                 int count = 0;
 
@@ -134,24 +160,35 @@ namespace ConsoleServer.Model {
                     string pw = await GetMessageAsync();
 
                     if(!string.Equals(pw, room.Password)) {
-                        await SendMessageAsync($"Incorrect password! Please try again");
+                        if(count <= 2) {
+                            await SendMessageAsync($"Server :: Incorrect password! Please try again {count}");
+                        } else {
+                            await SendMessageAsync($"Server :: Incorrect password! plz try next time..");
+                        }
+
                         count++;
                     } else
                         break;
                 }
             }
-
-            await SendMessageAsync($"Entered room [{room.RoomName}]!");
-
             room.UserList.Add(this);
+            CurrentRoom = room;
             IsInRoom = true;
+
+            await SendMessageAsync($"Server :: Entered room [{room.RoomName}]!");
+            await CurrentRoom.BroadCast($"Server :: User {UserName} connected..!");
         }
 
-        public void LeaveRoom() {
+        public async Task LeaveRoom() {
             if(IsInRoom) {
-                CurrentRoom.UserList.Remove(this);
-                IsInRoom = false;
-                CurrentRoom = null;
+                if(CurrentRoom.Admin == this) {
+                    await CurrentRoom.DeleteRoom(this);
+                } else {
+                    await CurrentRoom.BroadCast($"Server :: User [{UserName}] leaved from the room [{CurrentRoom.RoomName}]");
+                    CurrentRoom.UserList.Remove(this);
+                    IsInRoom = false;
+                    CurrentRoom = null;
+                }
             }
         }
 
@@ -178,6 +215,8 @@ namespace ConsoleServer.Model {
         public void Dispose() {
             Socket?.Dispose();
             Stream?.Dispose();
+
+            LeaveRoom();
 
             Logger.Log($"{Host} - {UserName} Disconnected.");
 

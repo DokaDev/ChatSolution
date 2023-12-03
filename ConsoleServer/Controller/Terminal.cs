@@ -1,9 +1,10 @@
 ﻿using ConsoleServer.Commands.Terminal;
+using ConsoleServer.Repository;
 
 namespace ConsoleServer.Controller {
     public class Terminal : IDisposable {
         public ServerManager Context { get; }
-        public TerminalProcessor Processor { get; }
+        //public TerminalProcessor Processor { get; }
 
         /// <summary>
         /// CONSTRUCTOR
@@ -11,7 +12,7 @@ namespace ConsoleServer.Controller {
         /// <param name="context">Get Server Context</param>
         public Terminal(ServerManager context) {
             Context = context;
-            Processor = new();
+            AttributeContext.Context = new();
         }
 
         public void StartTerminal() {
@@ -31,7 +32,7 @@ namespace ConsoleServer.Controller {
 
         public void HandleCommand(string? input) {
             // todo. Handle Command Logic
-            Processor.Process(input);
+            AttributeContext.Context.Process(input);
         }
 
         public void StopTerminal() {

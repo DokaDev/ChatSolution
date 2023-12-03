@@ -9,7 +9,7 @@ namespace ConsoleServer.Commands.Terminal {
                 Console.WriteLine("No Rooms Exists yet..");
             else {
                 Console.ForegroundColor = ConsoleColor.Cyan;
-                Console.WriteLine("=========== CHAT ROOMS ===========");
+                Console.WriteLine($"=========== CHAT ROOMS [{Repos.RoomList.Count}] ===========");
                 Console.ForegroundColor = ConsoleColor.White;
                 foreach(ChatRoom room in Repos.RoomList) {
                     if(!string.IsNullOrEmpty(room.Password))

@@ -50,7 +50,14 @@ namespace ConsoleClient {
         public void Sender() {
             try {
                 while(IsRunning) {
-                    string msg = Console.ReadLine();
+                    string? msg = Console.ReadLine();
+
+                    switch(msg.ToLower()) {
+                        case "#clear":
+                            Console.Clear();
+                            continue;
+                    }
+
                     byte[] sndBuf = Encoding.Default.GetBytes(msg);
                     //byte[] sizeOfBuf = Encoding.Default.GetBytes(sndBuf.Length.ToString());
 
